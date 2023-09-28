@@ -1,0 +1,125 @@
+\documentclass[a4,10pt]{article}
+
+\usepackage[square,comma,numbers,sort&compress]{natbib}
+\usepackage{a4wide}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage[usenames]{color}
+\usepackage{appendix}
+\usepackage{setspace}
+%\usepackage{setspace}
+%\doublespacingmodel of 
+%\usepackage[retainorgcmds]{IEEEtrantools}
+\setcounter{tocdepth}{3}
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
+
+\def\mathbi#1{\textbf{\em #1}}
+
+\renewenvironment{abstract}
+  {\newpage\thispagestyle{plain}
+   \null\vfil
+   \begin{center}%
+     \bfseries \abstractname
+   \end{center}}
+  {\par\vfil\null\cleardoublepage}
+
+\setcounter{topnumber}{2}
+\setcounter{bottomnumber}{2}
+\setcounter{totalnumber}{4}
+\renewcommand{\topfraction}{0.85}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.15}
+\renewcommand{\floatpagefraction}{0.7}
+%%%%%%%end figures
+%\title{Statistical supplement to DNA-bind}
+\title{Number of tests}
+\date{}%\author{Richard Spinney}
+\usepackage[top=0.75in, bottom=0.75in,left=0.75in,right=0.75in]{geometry}
+%\usepackage[top=1.5in, bottom=1.5in,left=1.5in,right=1.5in]{geometry}
+\begin{document}
+\maketitle
+\subsection*{Question}
+\begin{quote}
+There are buckets buckets of liquid, where exactly one of the buckets is poisonous. To figure out which one is poisonous, you feed some number of (poor) pigs the liquid to see whether they will die or not. Unfortunately, you only have minutesToTest minutes to determine which bucket is poisonous.
+\par
+You can feed the pigs according to these steps:
+\begin{itemize}
+\item    Choose some live pigs to feed.
+\item    For each pig, choose which buckets to feed it. The pig will consume all the chosen buckets simultaneously and will take no time. Each pig can feed from any number of buckets, and each bucket can be fed from by any number of pigs.
+\item    Wait for minutesToDie minutes. You may not feed any other pigs during this time.
+\item    After minutesToDie minutes have passed, any pigs that have been fed the poisonous bucket will die, and all others will survive.
+\item    Repeat this process until you run out of time.
+\end{itemize}
+Given buckets, minutesToDie, and minutesToTest, return the minimum number of pigs needed to figure out which bucket is poisonous within the allotted time.
+\par
+ 
+
+Example 1:
+\\
+Input: buckets = 4, minutesToDie = 15, minutesToTest = 15\\
+Output: 2\\
+Explanation: We can determine the poisonous bucket as follows:
+\begin{itemize}
+\item At time 0, feed the first pig buckets 1 and 2, and feed the second pig buckets 2 and 3.
+\item At time 15, there are 4 possible outcomes:
+\item - If only the first pig dies, then bucket 1 must be poisonous.
+\item - If only the second pig dies, then bucket 3 must be poisonous.
+\item - If both pigs die, then bucket 2 must be poisonous.
+\item - If neither pig dies, then bucket 4 must be poisonous.
+\end{itemize}
+Example 2:
+\\
+Input: buckets = 4, minutesToDie = 15, minutesToTest = 30\\
+Output: 2\\
+Explanation: We can determine the poisonous bucket as follows:
+\begin{itemize}
+\item At time 0, feed the first pig bucket 1, and feed the second pig bucket 2.
+\item At time 15, there are 2 possible outcomes:
+\item - If either pig dies, then the poisonous bucket is the one it was fed.
+\item - If neither pig dies, then feed the first pig bucket 3, and feed the second pig bucket 4.
+\item At time 30, one of the two pigs must die, and the poisonous bucket is the one it was fed.
+\end{itemize}
+
+Constraints:
+
+    1 $<=$ buckets $<= 1000$\\
+    1 $<=$ minutesToDie $<=$ minutesToTest $<=$ 100
+
+
+\end{quote}
+\subsection*{Solution}
+\paragraph{Number of tests}
+There are minutesToDie / timeToTest (rounded down) number of tests that can be performed
+\paragraph{Max information  in one test}
+In one test, given $p$ pigs - each having outcome live/die, there are $2^p$ discernable outcomes. E.g. $p=3$, we can give the numbered buckets to the numbered pigs
+\begin{itemize}
+\item 1: 1,2,3
+\item 2: 1,2
+\item 3: 2,3
+\item 4: 1,3
+\item 5: 1
+\item 6: 2
+\item 7: 3
+\item 8:$\;\;\emptyset$
+\end{itemize}
+with each outcome directly discernable from the exact pigs that die.
+\begin{quote}{\bf Generalisation}: Given $p$ objects with $m$ outcomes we can encode $m^p$ total outcomes.
+\end{quote}
+\subsection*{Adapt to multiple tests}
+When we have $k = $minutesToTest/timeToTest separate tests to perform, there are $k+1$ outcomes that can occur for each pig - e.g. $k=3$ it can die in test $1$, $2$, or $3$, or it can not die. So there are  $(k+1)^p$ outcomes that can be discerned with $p$ pigs.
+\begin{quote}{\bf Generalisation}: Given $p$ objects with $m$ outcomes across $k$ tests we can encode $(k(m-1)+1)^p$ total outcomes. Note: this is based on insisting that each object can only have an outcome in one test.
+\par
+E.g. if pigs could be alive/dead/ill, and we can only use each pig in one test then we have $(2k+1)^p$ coded outcomes, again with the last associated with neither dead or ill across all tests, and the $2k$ coming from dead/ill across each test.
+\par
+But we can generalise this as we see fit based on the rules of the game. Key: compute the allowable outcomes.
+\end{quote}
+\subsection*{Answer}
+We have $(k+1)^p$ coded outcomes, and $b$ buckets. So we choose minimum $p$ such that $(k+1)^p \geq b$. This can be achieved with
+\begin{verbatim}
+ceil(log(b)/ log(k+1))
+\end{verbatim}
+{\bf Careful} Watch for floating point errors. Try $\log(b) \to \log(b)-\epsilon$
+\subsection*{Information Theory}
+With $b$ buckets we need $\log_2(b)$ bits of information. Each pig yields $\log_2(k+1)$ bits of information. Therefore we need $\log_2(b)/\log_2(k+1)$ pigs.
+\end{document}

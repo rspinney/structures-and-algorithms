@@ -1,0 +1,4 @@
+#everything in build folder
+build/*
+#editor files
+.vscode/*
